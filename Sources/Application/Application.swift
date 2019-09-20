@@ -13,6 +13,7 @@ public class App {
 
     func postInit() throws {
         initializeCodableRoutes(app: self)
+        initializeRawRoutes(app: self)
 
         router.get("/") { request, response, next in
             response.send("Hello from the 1st route!")
