@@ -1,4 +1,5 @@
 import Kitura
+import KituraOpenAPI
 import LoggerAPI
 import Dispatch
 
@@ -14,6 +15,9 @@ public class App {
     func postInit() throws {
         initializeCodableRoutes(app: self)
         initializeRawRoutes(app: self)
+        initializeMongoRoutes(app: self)
+
+        KituraOpenAPI.addEndpoints(to: router)
 
         router.get("/") { request, response, next in
             response.send("Hello from the 1st route!")
