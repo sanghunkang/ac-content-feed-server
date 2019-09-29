@@ -16,49 +16,42 @@ extension App {
         // Save book here
         print("mongo triggered")
         print(book)
-        print(App.mongoDBClient["mottemotte"])  
-        
-        let items = App.mongoDBClient["mottemotte"]
 
-        let encoder = BSONEncoder()
+        let collection = App.mongoDBClient["mottemotte"]
+        
         do {
+            let encoder = BSONEncoder()
             let encodedDocument: Document = try encoder.encode(book)
-            items.insert(encodedDocument)
-            print("Inserted!")
-            print(encodedDocument)
+            collection.insert(encodedDocument)
 
             execute {
                 App.codableStoreBookDocument.append(book)
             }
             completion(book, nil)
         } catch let error {
-            print(error)
+            Log.error(error.localizedDescription)
+            return completion(nil, .internalServerError)
         }
     }
 
     func mongoFindAllHandler(completion: @escaping ([BookDocument]?, RequestError?) -> Void) {
         print("GET: mongo triggered")
         // Check if collections exist
-        let database = App.mongoDBClient["mottemotte"]
+        let collection = App.mongoDBClient["mottemotte"]
         // guard let database = App.mongoDBClient["mottemotte"]  else {
         //     return completion(nil, .internalServerError)
         // }
 
 
         // Send query to collection
-        let books = database.find()
-            // .map { document in return document["username"] as? String } 
-            .forEach { (book: Document) in print(book) }
-        print(books)
-        // completion(books, nil)
-
-        books.whenSuccess { _ in
-            print("Inserted!")
-            // completion(aa, nil)
-        }
-
-        books.whenFailure { error in
-            print("Insertion failed", error)
+        do {
+            let bookDocuments = try collection.find()
+                .decode(BookDocument.self)
+                .getAllResults()
+                .wait() 
+            completion(bookDocuments, nil)
+        } catch let error{
+            Log.error(error.localizedDescription)
             completion(nil, .internalServerError)
         }
 
