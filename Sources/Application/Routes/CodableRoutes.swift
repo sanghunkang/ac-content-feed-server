@@ -11,6 +11,7 @@ extension App {
     // Write handlers here
 
     func postHandler(book: Book, completion: (Book?, RequestError?) -> Void) {
+        print(book)
         execute {
             App.codableStore.append(book)
         }

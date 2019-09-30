@@ -13,12 +13,10 @@ extension App {
     static var codableStoreBookDocument = [BookDocument]()
 
     func mongoSaveHandler(book: BookDocument, completion: @escaping (BookDocument?, RequestError?) -> Void) {
-        // Save book here
-        print("mongo triggered")
-        print(book)
-
+        // Check if collections exist
         let collection = App.mongoDBClient["mottemotte"]
         
+        // Insert Document
         do {
             let encoder = BSONEncoder()
             let encodedDocument: Document = try encoder.encode(book)
@@ -43,29 +41,17 @@ extension App {
         // }
 
 
-        // Send query to collection
+        // Retrieve Documents
         do {
             let bookDocuments = try collection.find()
                 .decode(BookDocument.self)
                 .getAllResults()
                 .wait() 
-            completion(bookDocuments, nil)
+            print(bookDocuments)
+            // completion(bookDocuments, nil)
         } catch let error{
             Log.error(error.localizedDescription)
             completion(nil, .internalServerError)
         }
-
-        // App.couchDBClient.retrieveDB("bookstore") { (database, error) in
-        //     guard let database = database  else {
-        //         return completion(nil, .internalServerError)
-        //     }
-        //     database.retrieveAll(includeDocuments: true, callback: { (allDocuments, error) in
-        //         guard let allDocuments = allDocuments else {
-        //             return completion(nil, RequestError(httpCode: error?.statusCode ?? 500))
-        //         }
-        //         let books = allDocuments.decodeDocuments(ofType: BookDocument.self)
-        //         completion(books, nil)
-        //     })
-        // }
     }
 }
