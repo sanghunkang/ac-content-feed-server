@@ -5,14 +5,14 @@ import LoggerAPI
 func initializeContentForwardRoutes(app: App) {
     app.router.get("/getContent", handler: app.getContentHandler)
     app.router.post("/insertContent", handler: app.insertContentHandler)
-    // app.router.put("/updateContent", handler: app.updateContentHandler)
+    app.router.post("/updateContent", handler: app.updateContentHandler)
     // app.router.put("/updateContentRank", handler: app.updateContentRankHandler)
 }
 
 extension App {
     // static var codableStoreBookDocument = [BookDocument]()
 
-    func getContentHandler(completion: @escaping ([Content]?, RequestError?) -> Void) {
+    func getContentHandler(completion: @escaping (Content?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.mongoDBClient["mottemotte"]
 
@@ -32,10 +32,11 @@ extension App {
             // // Concatenate two sets
             // let contentsCandidates = contentsWrong + contentsNormal 
             // // Random selection from Dirichlet distribution with rank as alphas
+            let content = contents[0]
             // content = Dirichlet(contentsCandidates)
 
             // Send respoese
-            completion(contents, nil)
+            completion(content, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -49,13 +50,8 @@ extension App {
         
         // Insert Document
         do {
-            print(content)
             let encoder = BSONEncoder()
-            let encodedDocument: Document = try encoder.encode(content)
-            // print(encodedDocument)
-            // let myUser: Document = ["username": "kitty", "password": "meow"]
-
-
+            let encodedDocument: Document = try encoder.encode(content) 
             collection.insert(encodedDocument)
             completion(encodedDocument, nil)
         } catch let error {
@@ -65,17 +61,28 @@ extension App {
     }
 
     // Update content itself
-    // func updateContentHandler(content: ContentDocument, completion: @escaping (BookDocument?, RequestError?) -> Void) {
-    //     // Check if collections exist
-    //     let collection = App.mongoDBClient["mottemotte"]
+    // func updateContentHandler(id: Int, content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
+    func updateContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
+        // Check if collections exist
+        let collection = App.mongoDBClient["mottemotte"]
 
-    //     do {
+        do {
+            print(content)
+            // let encoder = BSONEncoder()
+            // let encodedDocument: Document = try encoder.encode(content)
+            // print(encodedDocument)
+            // let myUser: Document = ["username": "kitty", "password": "meow"]
+            let contents = try collection.findOne("_id" == content._id!)
+                    // .decode(Content.self)
+                    // .getAllResults()
+                    .wait() 
+            print(contents)       
 
-    //     } catch let error {
-    //         Log.error(error.localizedDescription)
-    //         return completion(nil, .internalServerError)
-    //     }
-    // }
+        } catch let error {
+            Log.error(error.localizedDescription)
+            return completion(nil, .internalServerError)
+        }
+    }
 
     // Update content rank
     // func updateContentRankHandler(content: ContentDocument, completion: @escaping (BookDocument?, RequestError?) -> Void) {
