@@ -1,4 +1,4 @@
-// import MongoKitten
+import MongoKitten
 
 struct Content: Codable {
     let _id: String?
@@ -7,7 +7,9 @@ struct Content: Codable {
     let answer: Bool
     let description: String
     let rank: Int?
-    let last_answered_wrong: String?
+    var created_at: String?
+    var last_succeeded_at: String?
+    var last_failed_at: String?
 
     init(question: String, answer: Bool, description: String) {
         self._id = ""
@@ -16,6 +18,6 @@ struct Content: Codable {
         self.answer = answer
         self.description = description
         self.rank = 0
-        self.last_answered_wrong = ""
+        
     }
 }

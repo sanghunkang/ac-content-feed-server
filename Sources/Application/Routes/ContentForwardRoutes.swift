@@ -1,6 +1,16 @@
 import KituraContracts
 import MongoKitten
 import LoggerAPI
+import Foundation
+
+func getCurrentDateString() -> String {
+    let now = Date()
+    let formatter = DateFormatter()
+    formatter.timeZone = TimeZone.current
+    formatter.dateFormat = "yyyy-MM-dd HH:mm"
+    let dateString = formatter.string(from: now)
+    return dateString
+}
 
 func initializeContentForwardRoutes(app: App) {
     app.router.get("/getContent", handler: app.getContentHandler)
@@ -50,10 +60,13 @@ extension App {
         
         // Insert Document
         do {
+            var contentToWrite = content
+            contentToWrite.created_at = getCurrentDateString()
+
             let encoder = BSONEncoder()
-            let encodedDocument: Document = try encoder.encode(content) 
-            collection.insert(encodedDocument)
-            completion(encodedDocument, nil)
+            let document: Document = try encoder.encode(contentToWrite) 
+            collection.insert(document)
+            completion(document, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -68,16 +81,28 @@ extension App {
 
         do {
             print(content)
-            // let encoder = BSONEncoder()
-            // let encodedDocument: Document = try encoder.encode(content)
-            // print(encodedDocument)
-            // let myUser: Document = ["username": "kitty", "password": "meow"]
-            let contents = try collection.findOne("_id" == content._id!)
-                    // .decode(Content.self)
-                    // .getAllResults()
-                    .wait() 
-            print(contents)       
+            let encoder = BSONEncoder()
+            let encodedDocument: Document = try encoder.encode(content)
 
+
+            let objectId = try ObjectId(content._id!)
+            var updateSetting: [String: String] = [:]
+            
+            if content.last_failed_at != nil {
+                updateSetting = ["last_failed_at": content.last_failed_at!]
+            } else if content.last_succeeded_at != nil {
+                updateSetting = ["last_failed_at": content.last_succeeded_at!]
+            }
+
+            let result = try collection.update(
+                where: "_id" == objectId, 
+                setting: updateSetting
+            ).wait()
+
+
+            print(result)
+
+            completion(encodedDocument, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
