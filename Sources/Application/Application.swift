@@ -15,7 +15,6 @@ public class App {
     func postInit() throws {
         initializeCodableRoutes(app: self)
         initializeRawRoutes(app: self)
-        initializeMongoRoutes(app: self)
         initializeContentForwardRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)

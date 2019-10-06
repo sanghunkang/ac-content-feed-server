@@ -7,7 +7,7 @@ func getCurrentDateString() -> String {
     let now = Date()
     let formatter = DateFormatter()
     formatter.timeZone = TimeZone.current
-    formatter.dateFormat = "yyyy-MM-dd HH:mm"
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
     let dateString = formatter.string(from: now)
     return dateString
 }
@@ -20,20 +20,26 @@ func initializeContentForwardRoutes(app: App) {
 }
 
 extension App {
-    // static var codableStoreBookDocument = [BookDocument]()
+    static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
+    static var codableStoreBookDocument = [BookDocument]()
 
     func getContentHandler(completion: @escaping (Content?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.mongoDBClient["mottemotte"]
+        let collection = App.database["commercial_law"]
 
         // Algorithm
         do {
             // Sample from latest error set (Top N)
-            let contents = try collection.find("answer" != nil)
-                    .decode(Content.self)
-                    .getAllResults()
-                    .wait() 
+            let contents = try collection.find()
+                .sort([
+                    "last_failed_at" : .descending,
+                    "created_at": .descending,
+                ])
+                .decode(Content.self)
+                .getAllResults()
+                .wait() 
             print(contents)
+
             // Sample from the rest
             // let contentsNormal = try collection.find({"latest error": {"$lt": "....", "max": 100}})
             //         .decode(BookDocument.self)
@@ -56,15 +62,18 @@ extension App {
     // Insert content defined by user into database
     func insertContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.mongoDBClient["mottemotte"]
+        let collection = App.database["commercial_law"]
         
         // Insert Document
         do {
-            var contentToWrite = content
-            contentToWrite.created_at = getCurrentDateString()
+            var content = content
+            content.created_at = getCurrentDateString()
+            content.count_succeeded = 0
+            content.count_failed = 0
+            content.count_gaveup = 0
 
-            let encoder = BSONEncoder()
-            let document: Document = try encoder.encode(contentToWrite) 
+            let document: Document = try BSONEncoder().encode(content)
+            print(document)
             collection.insert(document)
             completion(document, nil)
         } catch let error {
@@ -74,35 +83,31 @@ extension App {
     }
 
     // Update content itself
-    // func updateContentHandler(id: Int, content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
     func updateContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.mongoDBClient["mottemotte"]
+        let collection = App.database["commercial_law"]
 
         do {
-            print(content)
-            let encoder = BSONEncoder()
-            let encodedDocument: Document = try encoder.encode(content)
-
+            let document: Document = try BSONEncoder().encode(content)
 
             let objectId = try ObjectId(content._id!)
             var updateSetting: [String: String] = [:]
             
             if content.last_failed_at != nil {
-                updateSetting = ["last_failed_at": content.last_failed_at!]
+                updateSetting["last_failed_at"] = content.last_failed_at!
             } else if content.last_succeeded_at != nil {
-                updateSetting = ["last_failed_at": content.last_succeeded_at!]
+                updateSetting["last_succeeded_at"] = content.last_succeeded_at!
             }
 
+            // update document
             let result = try collection.update(
                 where: "_id" == objectId, 
                 setting: updateSetting
             ).wait()
 
-
             print(result)
-
-            completion(encodedDocument, nil)
+            // RETURN TYPE WILL BE CHANGED TO MEET HTTP REQUEST-RESPONSE SPEC
+            completion(document, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -112,7 +117,7 @@ extension App {
     // Update content rank
     // func updateContentRankHandler(content: ContentDocument, completion: @escaping (BookDocument?, RequestError?) -> Void) {
     //     // Check if collections exist
-    //     let collection = App.mongoDBClient["mottemotte"]
+    //     let collection = App.database["mottemotte"]
         
     //     // Update rank
     //     let rank = algorithm.updateRank(content)
