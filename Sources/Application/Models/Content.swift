@@ -3,9 +3,13 @@ import MongoKitten
 struct Content: Codable {
     let _id: String?
     var _rev: String?
-    let question: String
-    let answer: Bool
-    let solution: String
+    var type: String?
+
+    var question: String
+    var answer: Bool
+    var solution: String
+
+    // Automatically computed by service. Ordinary users wouldn't have access to manipulate these
     let rank: Int?
     var created_at: String?
     var last_succeeded_at: String?
@@ -14,14 +18,4 @@ struct Content: Codable {
     var count_failed: Int?
     var count_succeeded: Int?
     var count_gaveup: Int?
-
-    init(question: String, answer: Bool, solution: String) {
-        self._id = ""
-        self._rev = ""
-        self.question = question
-        self.answer = answer
-        self.solution = solution
-        self.rank = 0
-        
-    }
 }

@@ -32,6 +32,7 @@ extension App {
             // Sample from latest error set (Top N)
             let contents = try collection.find()
                 .sort([
+                    "last_succeeded_at": .ascending,
                     "last_failed_at" : .descending,
                     "created_at": .descending,
                 ])
@@ -95,6 +96,7 @@ extension App {
             
             if content.last_failed_at != nil {
                 updateSetting["last_failed_at"] = content.last_failed_at!
+                // updateSetting["count_failed"]
             } else if content.last_succeeded_at != nil {
                 updateSetting["last_succeeded_at"] = content.last_succeeded_at!
             }
