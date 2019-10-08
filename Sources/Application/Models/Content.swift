@@ -4,6 +4,7 @@ struct Content: Codable {
     let _id: String?
     var _rev: String?
     var type: String?
+    var set_name: String
 
     var question: String
     var answer: Bool

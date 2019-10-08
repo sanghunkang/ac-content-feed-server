@@ -20,17 +20,21 @@ func initializeContentForwardRoutes(app: App) {
 }
 
 extension App {
-    static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
+    static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
     static var codableStoreBookDocument = [BookDocument]()
 
     func getContentHandler(completion: @escaping (Content?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.database["commercial_law"]
+        let collection = App.database["contents"]
 
         // Algorithm
         do {
             // Sample from latest error set (Top N)
-            let contents = try collection.find()
+            let contents = try collection
+                // .find([
+                //     "set_name": "commercial_law"
+                // ])
+                .find()
                 .sort([
                     "last_succeeded_at": .ascending,
                     "last_failed_at" : .descending,
@@ -63,7 +67,7 @@ extension App {
     // Insert content defined by user into database
     func insertContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.database["commercial_law"]
+        let collection = App.database["contents"]
         
         // Insert Document
         do {
@@ -86,7 +90,7 @@ extension App {
     // Update content itself
     func updateContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
         // Check if collections exist
-        let collection = App.database["commercial_law"]
+        let collection = App.database["contents"]
 
         do {
             let document: Document = try BSONEncoder().encode(content)

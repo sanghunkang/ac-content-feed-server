@@ -32,7 +32,7 @@ public class App {
 
     public func run() throws {
         try postInit()
-        Kitura.addHTTPServer(onPort: 8000, with: router)
+        Kitura.addHTTPServer(onPort: 8080, with: router)
         Kitura.run()
     }
 
