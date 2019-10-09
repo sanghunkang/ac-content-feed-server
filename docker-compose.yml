@@ -3,18 +3,23 @@ services:
   app:
     container_name: app
     restart: always
-    image: adaptive-cram-dev:v0.1.1
+    image: adaptive-cram-dev
     ports:
       - "8080:8080"
-    links:
+    depends_on:
       - mongo
   mongo:
     container_name: mongo
     image: mongo
     volumes:
-      - ~/data/mongo:/data/db
+      - ~/dev/cfs/data/db:/data/db
     ports:
       - "27017:27017"
-    environment:
-      FLASK_ENV: development
-      MONGO_URL: mongodb://127.0.0.1:27017
+    # command: mongod --bind_ip_all
+# volumes:
+#   ~/dev/cfs/data/mongo:
+    # links:
+    #   - mongo
+    # environment:
+    #   WAIT_HOSTS: mongo:27017
+  

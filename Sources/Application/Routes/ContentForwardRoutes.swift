@@ -20,10 +20,14 @@ func initializeContentForwardRoutes(app: App) {
 }
 
 extension App {
+    // static let database = try! Database.synchronousConnect("mongodb://mongodb:27017/adaptive_cram")
     static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
+    // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
     static var codableStoreBookDocument = [BookDocument]()
 
     func getContentHandler(completion: @escaping (Content?, RequestError?) -> Void) {
+        print("mongodb://mongoow:27017/adaptive_cram")
+
         // Check if collections exist
         let collection = App.database["contents"]
 
@@ -31,10 +35,10 @@ extension App {
         do {
             // Sample from latest error set (Top N)
             let contents = try collection
-                // .find([
-                //     "set_name": "commercial_law"
-                // ])
-                .find()
+                .find([
+                    "set_name": "commercial_law"
+                ])
+                // .find()
                 .sort([
                     "last_succeeded_at": .ascending,
                     "last_failed_at" : .descending,
@@ -53,7 +57,11 @@ extension App {
             // // Concatenate two sets
             // let contentsCandidates = contentsWrong + contentsNormal 
             // // Random selection from Dirichlet distribution with rank as alphas
-            let content = contents[0]
+            // if contents.count == 0 {
+            //     throw error
+            // } else {
+                let content = contents[0]
+            // }
             // content = Dirichlet(contentsCandidates)
 
             // Send respoese
