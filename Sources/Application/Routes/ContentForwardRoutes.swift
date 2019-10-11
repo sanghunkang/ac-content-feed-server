@@ -97,6 +97,11 @@ extension App {
 
     // Update content itself
     func updateContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
+        // After all, only relevant ones are:
+        // 1. setname, 
+        // 2. has succeeded/failed/gaveup, 
+        // 3. id of content‘
+                
         // Check if collections exist
         let collection = App.database["contents"]
 
@@ -104,13 +109,20 @@ extension App {
             let document: Document = try BSONEncoder().encode(content)
 
             let objectId = try ObjectId(content._id!)
-            var updateSetting: [String: String] = [:]
+            var updateSetting: [String: Primitive?] = [:]
             
+            updateSetting["last_served_at"] = getCurrentDateString()
+
+            // TO CHANGE WHEN PARAMETER CHANGES
             if content.last_failed_at != nil {
-                updateSetting["last_failed_at"] = content.last_failed_at!
-                // updateSetting["count_failed"]
+                updateSetting["last_failed_at"] = getCurrentDateString()
+                updateSetting["count_failed"] = (content.count_failed ?? 0) + 1
             } else if content.last_succeeded_at != nil {
-                updateSetting["last_succeeded_at"] = content.last_succeeded_at!
+                updateSetting["last_succeeded_at"] = getCurrentDateString()
+                updateSetting["count_succeeded"] = (content.count_succeeded ?? 0) + 1
+            } else {
+                updateSetting["last_gaveup_at"] = getCurrentDateString()
+                updateSetting["count_gaveup"] = (content.count_gaveup ?? 0) + 1
             }
 
             // update document
@@ -127,26 +139,4 @@ extension App {
             return completion(nil, .internalServerError)
         }
     }
-
-    // Update content rank
-    // func updateContentRankHandler(content: ContentDocument, completion: @escaping (BookDocument?, RequestError?) -> Void) {
-    //     // Check if collections exist
-    //     let collection = App.database["mottemotte"]
-        
-    //     // Update rank
-    //     let rank = algorithm.updateRank(content)
-    //     content.rank 
-
-    //     do {
-    //         let encoder = BSONEncoder()
-    //         let encodedDocument: Document = try encoder.encode(book)
-            
-            
-    //         collection.update(encodedDocument)
-    //         completion(encodedContent, nil)
-    //     } catch let error {
-    //         Log.error(error.localizedDescription)
-    //         return completion(nil, .internalServerError)
-    //     }
-    // }
 }

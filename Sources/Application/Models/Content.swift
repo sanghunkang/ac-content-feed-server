@@ -13,6 +13,7 @@ struct Content: Codable {
     // Automatically computed by service. Ordinary users wouldn't have access to manipulate these
     let rank: Int?
     var created_at: String?
+    var last_served_at: String?
     var last_succeeded_at: String?
     var last_failed_at: String?
     var last_gaveup_at: String?
