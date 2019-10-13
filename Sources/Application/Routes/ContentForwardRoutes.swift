@@ -12,7 +12,9 @@ func getCurrentDateString() -> String {
     return dateString
 }
 
+
 func initializeContentForwardRoutes(app: App) {
+    app.router.get("/getSetNames", handler: app.getSetNamesHandler)
     app.router.get("/getContent", handler: app.getContentHandler)
     app.router.post("/insertContent", handler: app.insertContentHandler)
     app.router.post("/updateContent", handler: app.updateContentHandler)
@@ -20,26 +22,40 @@ func initializeContentForwardRoutes(app: App) {
 }
 
 extension App {
-    // static let database = try! Database.synchronousConnect("mongodb://mongodb:27017/adaptive_cram")
-    static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
-    // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
-    static var codableStoreBookDocument = [BookDocument]()
+    // static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
+    static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
 
-    func getContentHandler(completion: @escaping (Content?, RequestError?) -> Void) {
-        print("mongodb://mongoow:27017/adaptive_cram")
-
+    func getSetNamesHandler(completion: @escaping (Response?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
+        do {
+            let setNames = try collection.distinct(onKey: "set_name").wait()
+            print(setNames)
+
+            let respoese = Response(message: "succesfully updated content")
+            completion(respoese, nil)
+        } catch let error {
+            Log.error(error.localizedDescription)
+            return completion(nil, .internalServerError)
+        }
+    }
+
+
+
+    func getContentHandler(query: GetContentParams, completion: @escaping (Content?, RequestError?) -> Void) {
+        // Check if collections exist
+        let collection = App.database["contents"]
+        print(query.set_name)
         // Algorithm
         do {
             // Sample from latest error set (Top N)
             let contents = try collection
                 .find([
-                    "set_name": "commercial_law"
+                    "set_name": query.set_name
                 ])
-                // .find()
                 .sort([
+                    "last_served_at": .ascending,
                     "last_succeeded_at": .ascending,
                     "last_failed_at" : .descending,
                     "created_at": .descending,
@@ -47,20 +63,21 @@ extension App {
                 .decode(Content.self)
                 .getAllResults()
                 .wait() 
-            print(contents)
 
             // Sample from the rest
             // let contentsNormal = try collection.find({"latest error": {"$lt": "....", "max": 100}})
             //         .decode(BookDocument.self)
             //         .getAllResults()
             //         .wait() 
+
             // // Concatenate two sets
             // let contentsCandidates = contentsWrong + contentsNormal 
             // // Random selection from Dirichlet distribution with rank as alphas
             // if contents.count == 0 {
             //     throw error
             // } else {
-                let content = contents[0]
+            let content = contents[0]
+            print(content)
             // }
             // content = Dirichlet(contentsCandidates)
 
@@ -81,10 +98,10 @@ extension App {
         do {
             var content = content
             content.created_at = getCurrentDateString()
-            content.count_succeeded = 0
-            content.count_failed = 0
-            content.count_gaveup = 0
-
+            
+            content.count_succeeded = content.count_succeeded ?? 0
+            content.count_failed = content.count_failed ?? 0
+            content.count_gaveup = content.count_gaveup ?? 0
             let document: Document = try BSONEncoder().encode(content)
             print(document)
             collection.insert(document)
@@ -96,44 +113,45 @@ extension App {
     }
 
     // Update content itself
-    func updateContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
-        // After all, only relevant ones are:
-        // 1. setname, 
-        // 2. has succeeded/failed/gaveup, 
-        // 3. id of content‘
-                
+    func updateContentHandler(params: UpdateContentParams, completion: @escaping (Response?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
         do {
-            let document: Document = try BSONEncoder().encode(content)
+            let objectId = try ObjectId(params._id)           
 
-            let objectId = try ObjectId(content._id!)
-            var updateSetting: [String: Primitive?] = [:]
-            
-            updateSetting["last_served_at"] = getCurrentDateString()
+            var updateDocument: Document = [
+                "$set": ["last_served_at": getCurrentDateString()]
+            ]
 
             // TO CHANGE WHEN PARAMETER CHANGES
-            if content.last_failed_at != nil {
-                updateSetting["last_failed_at"] = getCurrentDateString()
-                updateSetting["count_failed"] = (content.count_failed ?? 0) + 1
-            } else if content.last_succeeded_at != nil {
-                updateSetting["last_succeeded_at"] = getCurrentDateString()
-                updateSetting["count_succeeded"] = (content.count_succeeded ?? 0) + 1
-            } else {
-                updateSetting["last_gaveup_at"] = getCurrentDateString()
-                updateSetting["count_gaveup"] = (content.count_gaveup ?? 0) + 1
+            switch params.answer_status {
+            case "correct_answer":
+                print("Correct answer")
+                updateDocument["$set"]["last_succeeded_at"] = getCurrentDateString()
+                updateDocument["$inc"]["count_succeeded"] = 1
+            case "wrong_answer":
+                print("Wrong answer")
+                updateDocument["$set"]["last_failed_at"] = getCurrentDateString()
+                updateDocument["$inc"]["count_failed"] = 1
+            default:
+                print("Neither correct or wrong answer")
+                updateDocument["$set"]["last_gaveup_at"] = getCurrentDateString()
+                updateDocument["$inc"]["count_gaveup"] = 1
             }
 
             // update document
             let result = try collection.update(
                 where: "_id" == objectId, 
-                setting: updateSetting
+                to: updateDocument
             ).wait()
 
             print(result)
+
+
             // RETURN TYPE WILL BE CHANGED TO MEET HTTP REQUEST-RESPONSE SPEC
-            completion(document, nil)
+            let respoese = Response(message: "succesfully updated content")
+            completion(respoese, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)

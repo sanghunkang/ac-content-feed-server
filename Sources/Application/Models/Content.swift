@@ -1,11 +1,13 @@
-import MongoKitten
+// import MongoKitten
 
 struct Content: Codable {
     let _id: String?
     var _rev: String?
     var type: String?
-    var set_name: String
 
+    // Field values which users must provide. Error will be raised when absent
+    var content_id: String?
+    var set_name: String
     var question: String
     var answer: Bool
     var solution: String
@@ -20,4 +22,9 @@ struct Content: Codable {
     var count_failed: Int?
     var count_succeeded: Int?
     var count_gaveup: Int?
+}
+
+struct SetName: Codable {
+    var set_name: String
+    // var last_served_at: String?
 }
