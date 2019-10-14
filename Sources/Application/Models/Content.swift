@@ -26,5 +26,8 @@ struct Content: Codable {
 
 struct SetName: Codable {
     var set_name: String
-    // var last_served_at: String?
+
+    init(set_name: String) {
+        self.set_name = set_name
+    }
 }

@@ -22,19 +22,20 @@ func initializeContentForwardRoutes(app: App) {
 }
 
 extension App {
-    // static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
-    static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
+    static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
+    // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
 
-    func getSetNamesHandler(completion: @escaping (Response?, RequestError?) -> Void) {
+    func getSetNamesHandler(completion: @escaping ([SetName]?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
         do {
-            let setNames = try collection.distinct(onKey: "set_name").wait()
+            let setNames = try collection.distinct(onKey: "set_name").wait().map { document in
+                return SetName(set_name: document as! String)
+            }
+            
             print(setNames)
-
-            let respoese = Response(message: "succesfully updated content")
-            completion(respoese, nil)
+            completion(setNames, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)

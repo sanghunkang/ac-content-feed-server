@@ -1,9 +1,9 @@
-version: "3.7"
+version: "3"
 services:
   app:
     container_name: app
     restart: always
-    image: adaptive-cram-dev
+    image: sanghunkang/ac-content-forward-server
     ports:
       - "8080:8080"
     depends_on:
@@ -11,8 +11,8 @@ services:
   mongo:
     container_name: mongo
     image: mongo
-    volumes:
-      - ~/dev/cfs/data/db:/data/db
+    # volumes:
+    #   - ~/dev/cfs/data/db:/data/db
     ports:
       - "27017:27017"
     # command: mongod --bind_ip_all
