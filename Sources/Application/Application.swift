@@ -16,6 +16,7 @@ public class App {
         initializeCodableRoutes(app: self)
         initializeRawRoutes(app: self)
         initializeContentForwardRoutes(app: self)
+        initializeTypeSafeSessionRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)
 

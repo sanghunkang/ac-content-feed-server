@@ -16,7 +16,7 @@ struct GetContentParams: QueryParams {
     let set_name: String
 }
 
-struct Response: Codable {
+struct ResponseMessage: Codable {
     let message: String
 
     init(message: String) {

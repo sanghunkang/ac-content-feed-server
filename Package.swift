@@ -8,13 +8,14 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/Kitura", from: "2.7.0"),
         .package(url: "https://github.com/IBM-Swift/Kitura-OpenAPI.git", from: "1.3.0"),
+        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", from: "3.3.4"),
         .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", from: "1.9.0"),
         .package(url: "https://github.com/OpenKitten/MongoKitten.git", from: "5.1.11"),
         // .package(url: "")
     ],
     targets: [
         .target(name: "cfs", dependencies: [ .target(name: "Application"), "Kitura", "HeliumLogger"]),
-        .target(name: "Application", dependencies: ["Kitura", "KituraOpenAPI", "MongoKitten"]),
+        .target(name: "Application", dependencies: ["Kitura", "KituraOpenAPI", "KituraSession", "MongoKitten"]),
         .testTarget(name: "ApplicationTests" , dependencies: [.target(name: "Application"), "Kitura" ])
     ]
 )

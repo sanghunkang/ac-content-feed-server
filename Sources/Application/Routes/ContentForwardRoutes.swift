@@ -1,4 +1,5 @@
 import KituraContracts
+import KituraSession
 import MongoKitten
 import LoggerAPI
 import Foundation
@@ -21,11 +22,12 @@ func initializeContentForwardRoutes(app: App) {
     // app.router.put("/updateContentRank", handler: app.updateContentRankHandler)
 }
 
+
 extension App {
     static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
     // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
 
-    func getSetNamesHandler(completion: @escaping ([SetName]?, RequestError?) -> Void) {
+    func getSetNamesHandler(session: CheckoutSession, completion: @escaping ([SetName]?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
@@ -44,7 +46,7 @@ extension App {
 
 
 
-    func getContentHandler(query: GetContentParams, completion: @escaping (Content?, RequestError?) -> Void) {
+    func getContentHandler(session: CheckoutSession, query: GetContentParams, completion: @escaping (Content?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
         print(query.set_name)
@@ -91,7 +93,7 @@ extension App {
     }
 
     // Insert content defined by user into database
-    func insertContentHandler(content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
+    func insertContentHandler(session: CheckoutSession, content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
         
@@ -114,7 +116,7 @@ extension App {
     }
 
     // Update content itself
-    func updateContentHandler(params: UpdateContentParams, completion: @escaping (Response?, RequestError?) -> Void) {
+    func updateContentHandler(session: CheckoutSession, params: UpdateContentParams, completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
@@ -151,7 +153,7 @@ extension App {
 
 
             // RETURN TYPE WILL BE CHANGED TO MEET HTTP REQUEST-RESPONSE SPEC
-            let respoese = Response(message: "succesfully updated content")
+            let respoese = ResponseMessage(message: "succesfully updated content")
             completion(respoese, nil)
         } catch let error {
             Log.error(error.localizedDescription)
