@@ -18,8 +18,8 @@ func initializeContentForwardRoutes(app: App) {
     app.router.get("/getSetNames", handler: app.getSetNamesHandler)
     app.router.get("/getContent", handler: app.getContentHandler)
     app.router.post("/insertContent", handler: app.insertContentHandler)
+    app.router.post("/insertContents", handler: app.insertContentsHandler)
     app.router.post("/updateContent", handler: app.updateContentHandler)
-    // app.router.put("/updateContentRank", handler: app.updateContentRankHandler)
 }
 
 
@@ -36,8 +36,12 @@ extension App {
                 return SetName(set_name: document as! String)
             }
             
+            for setName in setNames { //setName in 
+                session.setNames.append(setName)
+            }
             print(setNames)
-            completion(setNames, nil)
+
+            completion(session.setNames, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -93,7 +97,7 @@ extension App {
     }
 
     // Insert content defined by user into database
-    func insertContentHandler(session: CheckoutSession, content: Content, completion: @escaping (Document?, RequestError?) -> Void) {
+    func insertContentHandler(session: CheckoutSession, content: Content, completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
         
@@ -101,14 +105,56 @@ extension App {
         do {
             var content = content
             content.created_at = getCurrentDateString()
-            
             content.count_succeeded = content.count_succeeded ?? 0
             content.count_failed = content.count_failed ?? 0
             content.count_gaveup = content.count_gaveup ?? 0
+            
             let document: Document = try BSONEncoder().encode(content)
-            print(document)
             collection.insert(document)
-            completion(document, nil)
+            
+            session.contents.append(content)
+            session.save()
+            
+            // Prepare response
+            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
+            completion(respoeseMessage, nil)
+        } catch let error {
+            Log.error(error.localizedDescription)
+            return completion(nil, .internalServerError)
+        }
+    }
+
+    // Insert contents defined by user into database
+    func insertContentsHandler(session: CheckoutSession, contents: [Content], completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
+        // Check if collections exist
+        let collection = App.database["contents"]
+        
+        // Insert Document
+        do {
+            let contents = contents.map { content -> Content in
+                var content = content
+                content.created_at = getCurrentDateString()
+                content.count_succeeded = content.count_succeeded ?? 0
+                content.count_failed = content.count_failed ?? 0
+                content.count_gaveup = content.count_gaveup ?? 0
+                return content
+                // return try BSONEncoder().encode(content)
+                // session.contents.append(contentsOf: contents)
+            }
+            // session.save()
+
+            
+            let documents: [Document] = try contents.map { content in 
+                return try BSONEncoder().encode(content)
+            }
+            collection.insert(documents: documents)
+            
+            session.contents.append(contentsOf: contents)
+            session.save()
+            
+            // Prepare response
+            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
+            completion(respoeseMessage, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -152,9 +198,9 @@ extension App {
             print(result)
 
 
-            // RETURN TYPE WILL BE CHANGED TO MEET HTTP REQUEST-RESPONSE SPEC
-            let respoese = ResponseMessage(message: "succesfully updated content")
-            completion(respoese, nil)
+            // Prepare response
+            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
+            completion(respoeseMessage, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
