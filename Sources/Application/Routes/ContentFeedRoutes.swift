@@ -14,21 +14,19 @@ func getCurrentDateString() -> String {
 }
 
 
-func initializeContentForwardRoutes(app: App) {
+func initializeContentFeedRoutes(app: App) {
     app.router.get("/getSetNames", handler: app.getSetNamesHandler)
     app.router.get("/getContent", handler: app.getContentHandler)
-    app.router.post("/insertContent", handler: app.insertContentHandler)
-    app.router.post("/insertContents", handler: app.insertContentsHandler)
-    app.router.post("/updateContent", handler: app.updateContentHandler)
+    app.router.get("/getContents", handler: app.getContentsHandler)
+    app.router.post("/applyResult", handler: app.applyResultHandler)
+    // app.router.get("/applyResults", handler: app.applyResultsHandler)
 }
-
 
 extension App {
     static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
     // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
 
     func getSetNamesHandler(session: CheckoutSession, completion: @escaping ([SetName]?, RequestError?) -> Void) {
-        // Check if collections exist
         let collection = App.database["contents"]
 
         do {
@@ -48,15 +46,13 @@ extension App {
         }
     }
 
-
-
     func getContentHandler(session: CheckoutSession, query: GetContentParams, completion: @escaping (Content?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
         print(query.set_name)
-        // Algorithm
+        
         do {
-            // Sample from latest error set (Top N)
+            // Sort by rank
             let contents = try collection
                 .find([
                     "set_name": query.set_name
@@ -71,24 +67,10 @@ extension App {
                 .getAllResults()
                 .wait() 
 
-            // Sample from the rest
-            // let contentsNormal = try collection.find({"latest error": {"$lt": "....", "max": 100}})
-            //         .decode(BookDocument.self)
-            //         .getAllResults()
-            //         .wait() 
-
-            // // Concatenate two sets
-            // let contentsCandidates = contentsWrong + contentsNormal 
-            // // Random selection from Dirichlet distribution with rank as alphas
-            // if contents.count == 0 {
-            //     throw error
-            // } else {
+            // TODO: raise error if length is less than 0
             let content = contents[0]
-            print(content)
-            // }
-            // content = Dirichlet(contentsCandidates)
 
-            // Send respoese
+            // Send response
             completion(content, nil)
         } catch let error {
             Log.error(error.localizedDescription)
@@ -96,73 +78,40 @@ extension App {
         }
     }
 
-    // Insert content defined by user into database
-    func insertContentHandler(session: CheckoutSession, content: Content, completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
-        // Check if collections exist
+    func getContentsHandler(session: CheckoutSession, query: GetContentsParams, completion: @escaping ([Content]?, RequestError?) -> Void) {
         let collection = App.database["contents"]
-        
-        // Insert Document
+        print(query.set_name)
+        // Algorithm
         do {
-            var content = content
-            content.created_at = getCurrentDateString()
-            content.count_succeeded = content.count_succeeded ?? 0
-            content.count_failed = content.count_failed ?? 0
-            content.count_gaveup = content.count_gaveup ?? 0
-            
-            let document: Document = try BSONEncoder().encode(content)
-            collection.insert(document)
-            
-            session.contents.append(content)
-            session.save()
-            
-            // Prepare response
-            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
-            completion(respoeseMessage, nil)
+            // Sort by rank
+            let contents = try collection
+                .find([
+                    "set_name": query.set_name,
+                    "limitedTo": query.num_contents,
+                ])
+                .sort([
+                    "last_served_at": .ascending,
+                    "last_succeeded_at": .ascending,
+                    "last_failed_at" : .descending,
+                    "created_at": .descending,
+                ])
+                .decode(Content.self)
+                .getAllResults()
+                .wait() 
+
+            // TODO: raise error if length is less than N
+
+            // Send top N as response
+            // let contentsToReturn = contents[...query.num_contents] as! [Content]
+            // completion(contentsToReturn, nil)
+            completion(contents, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
         }
     }
 
-    // Insert contents defined by user into database
-    func insertContentsHandler(session: CheckoutSession, contents: [Content], completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
-        // Check if collections exist
-        let collection = App.database["contents"]
-        
-        // Insert Document
-        do {
-            let contents = contents.map { content -> Content in
-                var content = content
-                content.created_at = getCurrentDateString()
-                content.count_succeeded = content.count_succeeded ?? 0
-                content.count_failed = content.count_failed ?? 0
-                content.count_gaveup = content.count_gaveup ?? 0
-                return content
-                // return try BSONEncoder().encode(content)
-                // session.contents.append(contentsOf: contents)
-            }
-            // session.save()
-
-            
-            let documents: [Document] = try contents.map { content in 
-                return try BSONEncoder().encode(content)
-            }
-            collection.insert(documents: documents)
-            
-            session.contents.append(contentsOf: contents)
-            session.save()
-            
-            // Prepare response
-            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
-            completion(respoeseMessage, nil)
-        } catch let error {
-            Log.error(error.localizedDescription)
-            return completion(nil, .internalServerError)
-        }
-    }
-
-    // Update content itself
-    func updateContentHandler(session: CheckoutSession, params: UpdateContentParams, completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
+    func applyResultHandler(session: CheckoutSession, params: UpdateContentParams, completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
         // Check if collections exist
         let collection = App.database["contents"]
 
@@ -199,11 +148,21 @@ extension App {
 
 
             // Prepare response
-            let respoeseMessage = ResponseMessage(message: "succesfully updated content")
-            completion(respoeseMessage, nil)
+            let responseMessage = ResponseMessage(message: "succesfully updated content")
+            completion(responseMessage, nil)
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
         }
     }
+
+    // func applyResultsHandler(session: CheckoutSession, params: [UpdateContentParams], completion: @escaping (ResponseMessage?, RequestError?) -> Void) {
+    //     do {
+    //         let responseMessage = ResponseMessage(message: "API not yet implemented")
+    //         completion(responseMessage, nil)
+    //     } catch let error {
+    //         Log.error(error.localizedDescription)
+    //         return completion(nil, .internalServerError)
+    //     }
+    // }
 }

@@ -13,10 +13,7 @@ public class App {
     }
 
     func postInit() throws {
-        initializeCodableRoutes(app: self)
-        initializeRawRoutes(app: self)
-        initializeContentForwardRoutes(app: self)
-        initializeTypeSafeSessionRoutes(app: self)
+        initializeContentFeedRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)
 

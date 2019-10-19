@@ -2,13 +2,11 @@ import KituraSession
 
 final class CheckoutSession: TypeSafeSession {
     let sessionId: String                       // Requirement: every session must have an ID
-    var books: [Book]                           // User-defined type, where Book conforms to Codable
     var setNames: [SetName]
     var contents: [Content]
 
     init(sessionId: String) {                   // Requirement: must be able to create a new (empty)
         self.sessionId = sessionId              // session containing just an ID. Assign a default or
-        books = []
         setNames = []
         contents = []                            // empty value for any non-optional properties.
     }
