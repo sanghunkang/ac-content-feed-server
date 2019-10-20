@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "cfs",
+    name: "ac-content-feed-server",
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/Kitura", from: "2.7.0"),
         .package(url: "https://github.com/IBM-Swift/Kitura-OpenAPI.git", from: "1.3.0"),
@@ -14,8 +14,13 @@ let package = Package(
         // .package(url: "")
     ],
     targets: [
-        .target(name: "cfs", dependencies: [ .target(name: "Application"), "Kitura", "HeliumLogger"]),
-        .target(name: "Application", dependencies: ["Kitura", "KituraOpenAPI", "KituraSession", "MongoKitten"]),
+        .target(name: "ac-content-feed-server", dependencies: [ .target(name: "Application"), "Kitura", "HeliumLogger"]),
+        .target(name: "Application", dependencies: [
+            "Kitura",
+            "KituraOpenAPI",
+            "KituraSession",
+            "MongoKitten"
+        ]),
         .testTarget(name: "ApplicationTests" , dependencies: [.target(name: "Application"), "Kitura" ])
     ]
 )

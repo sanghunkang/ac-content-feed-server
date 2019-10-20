@@ -13,24 +13,21 @@ public class App {
     }
 
     func postInit() throws {
-        initializeContentFeedRoutes(app: self)
+        initializeCommonRoutes(app: self)
+        initializeTrueOrFalseProblemRoutes(app: self)
+        initializeMultipleResponseProblemRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)
 
         router.get("/") { request, response, next in
-            response.send("Hello from the 1st route!")
-            next()
-        }
-
-        router.get("/") { request, response, next in
-            response.send("Hello from the 2nd route!")
+            response.send("This is the index of ac-content-feed-server")
             next()
         }
     }
 
     public func run() throws {
         try postInit()
-        Kitura.addHTTPServer(onPort: 8080, with: router)
+        Kitura.addHTTPServer(onPort: 7001, with: router)
         Kitura.run()
     }
 
