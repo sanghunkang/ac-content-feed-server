@@ -6,7 +6,7 @@ import Foundation
 
 func initializeMultipleResponseProblemRoutes(app: App) {
     app.router.get("/getMultipleResponseProblem", handler: app.getMultipleResponseProblemHandler)
-    app.router.get("/getMultipleResponseProblems", handler: app.getMultipleResponseProblemsHandler)
+    // app.router.get("/getMultipleResponseProblems", handler: app.getMultipleResponseProblemsHandler)
 }
 
 
@@ -31,7 +31,7 @@ extension App {
             // TODO: raise error if length is less than 0
             var problem = multipleResponseProblems[0]
             var multipleResponseProblemToFeed = MultipleResponseProblemToFeed(
-                content_id: problem.problem_id,
+                content_id: problem.problem_id!,
                 set_name: problem.set_name,
                 answer: problem.answer
             )
@@ -66,8 +66,6 @@ extension App {
 
                 // multipleResponseProblemToFeed.choices // TODO: Add choices
             }
-
-
             // Send response
             completion(multipleResponseProblemToFeed, nil)
         } catch let error {
@@ -76,16 +74,15 @@ extension App {
         }
     }
 
-    func getMultipleResponseProblemsHandler(session: CheckoutSession, query: GetProblemsParams, completion: @escaping ([MultipleResponseProblemToFeed]?, RequestError?) -> Void) {
-        do {
+    // func getMultipleResponseProblemsHandler(session: CheckoutSession, query: GetProblemsParams, completion: @escaping ([MultipleResponseProblemToFeed]?, RequestError?) -> Void) {
+    //     do {
 
-            let multipleResponseProblemsToFeed: [MultipleResponseProblemToFeed]
-            // Send response
-            completion(multipleResponseProblemsToFeed, nil)
-        } catch let error {
-            Log.error(error.localizedDescription)
-            return completion(nil, .internalServerError)
-        }
-
-    }
+    //         let multipleResponseProblemsToFeed: [MultipleResponseProblemToFeed]
+    //         // Send response
+    //         completion(multipleResponseProblemsToFeed, nil)
+    //     } catch let error {
+    //         Log.error(error.localizedDescription)
+    //         return completion(nil, .internalServerError)
+    //     }
+    // }
 }

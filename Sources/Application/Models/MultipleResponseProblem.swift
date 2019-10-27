@@ -25,13 +25,13 @@ struct MultipleResponseProblemToFeed: Codable {
     var set_name: String
     
     // Intrinsic content
-    var choices: [String: String]
+    var choices: [String: String]?
     var answer: String
 
     init(content_id: String, set_name: String, answer: String) {
-        self.content_id = content_id
-        self.set_name = set_name
-        self.answer = answer
+        self.content_id = content_id;
+        self.set_name = set_name;
+        self.answer = answer;
    }
 }
 

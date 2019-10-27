@@ -57,7 +57,7 @@ struct ProblemHistory: Codable {
 
 struct SetName: Codable {
     var set_name: String
-    var problem_type: String // true_or_false, multiple_response
+    var problem_type: String? // true_or_false, multiple_response
 
     init(set_name: String) {
         self.set_name = set_name

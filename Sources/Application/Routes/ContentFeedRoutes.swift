@@ -33,11 +33,13 @@ extension App {
                 .getAllResults()
                 .wait() 
 
-            // TODO: raise error if length is less than 0
-            let content = contents[0]
-
             // Send response
-            completion(content, nil)
+            if 0 == contents.count {
+                completion(nil, .noContent)
+            } else {
+                completion(contents[0], nil)
+            }
+
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
@@ -47,13 +49,14 @@ extension App {
     func getContentsHandler(session: CheckoutSession, query: GetContentsParams, completion: @escaping ([Content]?, RequestError?) -> Void) {
         let collection = App.database["contents"]
         print(query.set_name)
+        print(query.num_contents)
         // Algorithm
         do {
             // Sort by rank
-            let contents = try collection
+            var contents = try collection
                 .find([
                     "set_name": query.set_name,
-                    "limitedTo": query.num_contents,
+                    // "limitedTo": query.num_contents, // TO DO: Find way to filter when querying
                 ])
                 .sort([
                     "last_served_at": .ascending,
@@ -65,20 +68,16 @@ extension App {
                 .getAllResults()
                 .wait() 
 
-            // TODO: raise error if length is less than N
-
-            // Send top N as response
-            completion(contents, nil)
+            
+            if 0 == contents.count {
+                completion([], .noContent)
+            } else {
+                contents = Array(contents[..<query.num_contents]) // Send top N as response
+                completion(contents, nil)
+            }
         } catch let error {
             Log.error(error.localizedDescription)
             return completion(nil, .internalServerError)
         }
-    }
-
-
-    
-
-
-
-    
+    }    
 }

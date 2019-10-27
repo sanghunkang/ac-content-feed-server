@@ -34,8 +34,10 @@ struct TrueOrFalseProblemToServe: Codable {
 
 
 
-struct UpdateUserHistoryParam: Codable {
-
+struct UpdateProblemHistoryParams: Codable {
+    var set_name: String
+    var problem_id: String
+    var answer_status: String
 }
 
 struct UpdateUserHistoriesParam: Codable {
