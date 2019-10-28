@@ -20,8 +20,8 @@ func initializeCommonRoutes(app: App) {
 }
 
 extension App {
-    // static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
-    static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
+    static let database = try! Database.synchronousConnect("mongodb://mongo:27017/adaptive_cram")
+    // static let database = try! Database.synchronousConnect("mongodb://localhost/adaptive_cram")
 
     func getSetNamesHandler(session: CheckoutSession, completion: @escaping ([SetName]?, RequestError?) -> Void) {
         let collection = App.database["contents"]
