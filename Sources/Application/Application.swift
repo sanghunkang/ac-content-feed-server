@@ -14,13 +14,14 @@ public class App {
 
     func postInit() throws {
         initializeCommonRoutes(app: self)
-        initializeTrueOrFalseProblemRoutes(app: self)
-        initializeMultipleResponseProblemRoutes(app: self)
+        initializeProblemFeedRoutes(app: self)
+        initializeUpdateHistoryRoutes(app: self)
+        // initializeMultipleResponseProblemRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)
 
         router.get("/") { request, response, next in
-            response.send("This is the index of ac-content-feed-server")
+            response.send("index of ac-content-feed-server")
             next()
         }
     }

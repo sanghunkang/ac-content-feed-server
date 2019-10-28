@@ -3,12 +3,12 @@ import KituraSession
 final class CheckoutSession: TypeSafeSession {
     let sessionId: String                       // Requirement: every session must have an ID
     var setNames: [SetName]
-    var contents: [Content]
+    var problems: [Problem]
 
     init(sessionId: String) {                   // Requirement: must be able to create a new (empty)
         self.sessionId = sessionId              // session containing just an ID. Assign a default or
         setNames = []
-        contents = []                            // empty value for any non-optional properties.
+        problems = []                            // empty value for any non-optional properties.
     }
 }
 
