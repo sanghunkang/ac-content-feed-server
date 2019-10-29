@@ -43,8 +43,9 @@ struct ProblemFeed: Codable {
     var solution: String?           // only required for TF question (possibly for MRP?)
     var choices: [String: String]?  // only required for MRP
 
-    init(problem_id: String, set_name: String, question: String, answer: String) {
+    init(set_name: String, problem_id: String, problem_type: String, question: String, answer: String) {
         self.problem_id = problem_id;
+        self.problem_type = problem_type;
         self.set_name = set_name;
         self.question = question;
         self.answer = answer;
@@ -52,22 +53,15 @@ struct ProblemFeed: Codable {
 }
 
 struct Perplexion: Codable {
-    // Database collection identifiers
-    let _id: String?
-    var _rev: String?
-
     // User identifier
-    var user_type: String
-    var user_id: String
+    var user_id: String?
 
     // Problem identifiers
     var set_name: String
     var label_problem_id: String
     var perplexion_problem_id: String
-    var perplexion_question: String // duplicate though
+    var perplexion_question: String     // duplicate, but will allow to skip one query per problem
 
     // Unique contents with algorithm keys
-    // Automatically computed by service. Ordinary users wouldn't have access to manipulate these
-    var rank: Int?
-    var last_perplexed_at: String
+    var rank: Int
 }

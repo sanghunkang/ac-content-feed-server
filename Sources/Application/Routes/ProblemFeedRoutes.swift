@@ -4,8 +4,6 @@ import MongoKitten
 import LoggerAPI
 import Foundation
 
-
-
 func initializeProblemFeedRoutes(app: App) {
     app.router.get("/getProblem", handler: app.getProblemHandler)
     app.router.get("/getProblems", handler: app.getProblemsHandler)
@@ -42,8 +40,9 @@ extension App {
                 // TODO: raise error if length is less than 0
                 let problem = problems[0]
                 var problemFeed = ProblemFeed(
-                    problem_id: problem.problem_id,
                     set_name: problem.set_name,
+                    problem_id: problem.problem_id,
+                    problem_type: problem.problem_type,
                     question: problem.question,
                     answer: problem.answer
                 )
@@ -102,8 +101,9 @@ extension App {
             problems = Array(problems[..<query.num_problems]) // Send top N as response
             let problemFeeds: [ProblemFeed] = problems.map { problem in
                 var problemFeed = ProblemFeed(
-                    problem_id: problem.problem_id,
                     set_name: problem.set_name,
+                    problem_id: problem.problem_id,
+                    problem_type: problem.problem_type,
                     question: problem.question,
                     answer: problem.answer
                 )

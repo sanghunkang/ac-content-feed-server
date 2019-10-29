@@ -16,7 +16,6 @@ public class App {
         initializeCommonRoutes(app: self)
         initializeProblemFeedRoutes(app: self)
         initializeUpdateHistoryRoutes(app: self)
-        // initializeMultipleResponseProblemRoutes(app: self)
 
         KituraOpenAPI.addEndpoints(to: router)
 
