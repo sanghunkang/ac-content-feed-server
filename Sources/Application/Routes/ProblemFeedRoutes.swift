@@ -13,21 +13,30 @@ extension App {
     func getProblemHandler(session: CheckoutSession, query: GetProblemParams, completion: @escaping (ProblemFeed?, RequestError?) -> Void) {
         // Check if problemCollections exist
         let problemCollection = App.database["problems"]
+        let problemHistoryCollection = App.database["problem_history"]
         print(query.set_name)
         
         do {
-            // Sort by rank
+            // retrieve userId from session
+            // let userId = session.userID ?? nil
+
+            // 
+            let problemId = try problemHistoryCollection
+                .find([
+                    // "user_id": usedId,
+                    "set_name": query.set_name,
+                    // "limitedTo": 1,
+                ])
+                .sort(["rank": .descending)
+                .decode(ProblemHistory.self)
+                .getAllResults()
+                .wait() 
+
+            // From problemIds            
             let problems = try problemCollection
                 .find([
                     "set_name": query.set_name
-                    // "limitedTo": 1,
-                ])
-                .sort([
-                    // "rank": .descending
-                    "last_served_at": .ascending,
-                    "last_succeeded_at": .ascending,
-                    "last_failed_at" : .descending,
-                    "created_at": .descending,
+                    "problem_id": problemId
                 ])
                 .decode(Problem.self)
                 .getAllResults()

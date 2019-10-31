@@ -27,7 +27,6 @@ struct Problem: Codable {
     var solution: String?           // only required for TF question (possibly for MRP?)
 
     // Automatically computed by service. Ordinary users wouldn't have access to manipulate these
-    let rank: Int?
     var created_at: String?
 }
 
